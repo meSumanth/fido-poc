@@ -29,5 +29,10 @@ class PagesController {
     return "quotes";
   }
   
+  @GetMapping("/webauthn/login")
+  String get() {
+    return "fido-login";
+ }
+  
 
 }

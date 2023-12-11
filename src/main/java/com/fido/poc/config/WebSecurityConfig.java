@@ -9,8 +9,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+
+import com.fido.poc.login.FidoAuthenticationConverter;
+import com.fido.poc.login.FidoAuthenticationManager;
+import com.fido.poc.login.FidoLoginSuccessHandler;
+
 
 
 /**
@@ -29,7 +38,7 @@ public class WebSecurityConfig {
 	}
 
 	@Bean
-	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, FidoAuthenticationManager fidoAuthenticationManager, MvcRequestMatcher.Builder mvc) throws Exception {
 		
 		
 		http.csrf().ignoringRequestMatchers(PathRequest.toH2Console());
@@ -49,12 +58,12 @@ public class WebSecurityConfig {
 				.permitAll().requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
 				.anyRequest().authenticated();
 
-//		AuthenticationFilter authenticationFilter = new AuthenticationFilter(fidoAuthenticationManager,
-//				new FidoAuthenticationConverter());
-//		authenticationFilter.setRequestMatcher(new AntPathRequestMatcher("/fido/login"));
-//		authenticationFilter.setSuccessHandler(new FidoLoginSuccessHandler());
-//		authenticationFilter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
-//		http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+		AuthenticationFilter authenticationFilter = new AuthenticationFilter(fidoAuthenticationManager,
+				new FidoAuthenticationConverter());
+		authenticationFilter.setRequestMatcher(new AntPathRequestMatcher("/fido/login"));
+		authenticationFilter.setSuccessHandler(new FidoLoginSuccessHandler());
+		authenticationFilter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
+		http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}

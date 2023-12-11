@@ -57,9 +57,5 @@ public class LoginController {
 		return result;
 	}
 	
-	@GetMapping("/webauthn/login")
-	  String get() {
-	    return "fido-login";
-	 }
 
 }
