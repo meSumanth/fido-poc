@@ -49,8 +49,11 @@ public class WebSecurityConfig {
 
 
 		http.authorizeHttpRequests()
-				.requestMatchers(mvc.pattern("/**"), mvc.pattern("/signup"), mvc.pattern("/signup/start"),
-						mvc.pattern("/signup/finish"), mvc.pattern("/signup/finish"),
+				.requestMatchers(mvc.pattern("/"), 
+						mvc.pattern("/register"),
+						mvc.pattern("/signup"), 
+						mvc.pattern("/signup/start"),
+						mvc.pattern("/signup/finish"), 
 						mvc.pattern("/webauthn/login/start"),
 	                    mvc.pattern("/webauthn/login/finish"),
 	                    mvc.pattern("/webauthn/login"),
