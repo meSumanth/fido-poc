@@ -23,6 +23,7 @@ import com.yubico.webauthn.RelyingParty;
 import com.yubico.webauthn.StartRegistrationOptions;
 import com.yubico.webauthn.data.AuthenticatorSelectionCriteria;
 import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
+import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserIdentity;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 import com.yubico.webauthn.exception.RegistrationFailedException;
@@ -66,7 +67,7 @@ public class SignUpServiceImpl implements SignUpService {
 				.id(YubicoUtils.toByteArray(user.getId())).build();
 
 		AuthenticatorSelectionCriteria authenticatorSelectionCriteria = AuthenticatorSelectionCriteria.builder()
-				.userVerification(UserVerificationRequirement.DISCOURAGED).build();
+				.userVerification(UserVerificationRequirement.PREFERRED).residentKey(ResidentKeyRequirement.REQUIRED).build();
 
 		StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder().user(userIdentity)
 				.timeout(30_000).authenticatorSelection(authenticatorSelectionCriteria).build();
@@ -85,28 +86,25 @@ public class SignUpServiceImpl implements SignUpService {
 	@Override
 	public SignUpFinishResponseDto finishSignUp(SignUpFinishRequestDto signUpFinishRequestDto,
 			PublicKeyCredentialCreationOptions publicKeyCredentialCreationOptions) throws RegistrationFailedException {
-		
-		FinishRegistrationOptions options =
-		        FinishRegistrationOptions.builder()
-		            .request(publicKeyCredentialCreationOptions)
-		            .response(signUpFinishRequestDto.getCredential())
-		            .build();
-		    RegistrationResult registrationResult = this.relyingParty.finishRegistration(options);
 
-		    FIDOCredentials fidoCredential = new FIDOCredentials(); //registrationResult.getKeyId().getId().getBase64Url(), registrationResult.getKeyId().getType().name(), YubicoUtils.toUUID(publicKeyCredentialCreationOptions.getUser().getId()), registrationResult.getPublicKeyCose().getBase64Url());
-		    fidoCredential.setId(registrationResult.getKeyId().getId().getBase64Url());
-		    fidoCredential.setType(registrationResult.getKeyId().getType().name());
-		    fidoCredential.setUserId(YubicoUtils.toUUID(publicKeyCredentialCreationOptions.getUser().getId()));
-		    fidoCredential.setPublicKeyCose(registrationResult.getPublicKeyCose().getBase64Url());
-		    
-		    this.userService.addCredential(fidoCredential);
+		FinishRegistrationOptions options = FinishRegistrationOptions.builder()
+				.request(publicKeyCredentialCreationOptions).response(signUpFinishRequestDto.getCredential()).build();
+		RegistrationResult registrationResult = this.relyingParty.finishRegistration(options);
 
-		    SignUpFinishResponseDto signUpFinishResponseDto = new SignUpFinishResponseDto();
-		    signUpFinishResponseDto.setId(signUpFinishRequestDto.getId());
-		    signUpFinishResponseDto.setRegistrationComplete(true);
+		FIDOCredentials fidoCredential = new FIDOCredentials();
+		fidoCredential.setId(registrationResult.getKeyId().getId().getBase64Url());
+		fidoCredential.setType(registrationResult.getKeyId().getType().name());
+		fidoCredential.setUserId(YubicoUtils.toUUID(publicKeyCredentialCreationOptions.getUser().getId()));
+		fidoCredential.setPublicKeyCose(registrationResult.getPublicKeyCose().getBase64Url());
 
-		    return signUpFinishResponseDto;
-		
+		this.userService.addCredential(fidoCredential);
+
+		SignUpFinishResponseDto signUpFinishResponseDto = new SignUpFinishResponseDto();
+		signUpFinishResponseDto.setId(signUpFinishRequestDto.getId());
+		signUpFinishResponseDto.setRegistrationComplete(true);
+
+		return signUpFinishResponseDto;
+
 	}
 
 }
